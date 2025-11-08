@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeMC Server Manager - Web Edition with AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #831843 100%);
+            font-family: 'Arial', sans-serif;
+        }
+        .console-output {
+            font-family: 'Courier New', monospace;
+        }
+        .glass {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <!-- Auth Screen -->
+    <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass rounded-xl border border-purple-500/30 max-w-md w-full p-8">
+            <div class="text-center mb-8">
+                <svg class="w-16 h-16 mx-auto mb-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+                </svg>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                    FreeMC Server Manager
+                </h1>
+                <p class="text-gray-400 text-sm">24/7 Minecraft Hosting with AI Assistant</p>
+            </div>
+
+            <!-- Sign In Form -->
+            <div id="signInForm">
+                <h2 class="text-xl font-bold mb-6 text-center">Sign In</h2>
+                <form onsubmit="signIn(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Email</label>
+                        <input type="email" name="email" required class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500" placeholder="your@email.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Password</label>
+                        <input type="password" name="password" required class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500" placeholder="••••••••">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="staySignedIn" class="w-4 h-4">
+                        <label for="staySignedIn" class="text-sm text-gray-300">Stay signed in</label>
+                    </div>
+                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all font-semibold">
+                        Sign In
+                    </button>
+                </form>
+                <div class="text-center mt-4">
+                    <button onclick="showSignUp()" class="text-purple-400 hover:text-purple-300 text-sm">
+                        Don't have an account? <span class="font-bold">Sign Up</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div id="signUpForm" class="hidden">
+                <h2 class="text-xl font-bold mb-6 text-center">Create Account</h2>
+                <form onsubmit="signUp(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Username</label>
+                        <input type="text" name="username" required class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500" placeholder="Your username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Email</label>
+                        <input type="email" name="email" required class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500" placeholder="your@email.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Password</label>
+                        <input type="password" name="password" required minlength="6" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Confirm Password</label>
+                        <input type="password" name="confirmPassword" required minlength="6" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all font-semibold">
+                        Create Account
+                    </button>
+                </form>
+                <div class="text-center mt-4">
+                    <button onclick="showSignIn()" class="text-purple-400 hover:text-purple-300 text-sm">
+                        Already have an account? <span class="font-bold">Sign In</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+    <!-- Header -->
+    <div class="bg-black/20 backdrop-blur-sm border-b border-purple-500/20">
+        <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+                </svg>
+                <div>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        FreeMC Server Manager
+                    </h1>
+                    <p class="text-xs text-gray-400">Welcome, <span id="usernameDisplay"></span></p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="showAIAssistant()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all flex items-center gap-2 shadow-lg">
+                    🤖 AI Assistant
+                </button>
+                <button onclick="showCreateModal()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all flex items-center gap-2 shadow-lg">
+                    ➕ Create Server
+                </button>
+                <button onclick="signOut()" class="px-4 py-2 bg-red-600/50 hover:bg-red-600 rounded-lg transition-all">
+                    🚪 Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-6 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Server List -->
+            <div class="lg:col-span-1">
+                <div class="glass rounded-xl border border-purple-500/20 p-4">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        🖥️ My Servers (<span id="serverCount">0</span>)
+                    </h2>
+                    <div id="serverList" class="space-y-2 max-h-[600px] overflow-y-auto">
+                        <div class="text-center py-8 text-gray-400">
+                            <div class="text-5xl mb-2">🖥️</div>
+                            <p>No servers yet</p>
+                            <p class="text-xs">Create one to get started!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Details -->
+            <div class="lg:col-span-2 space-y-4">
+                <div id="serverDetails" class="glass rounded-xl border border-purple-500/20 p-8 text-center">
+                    <div class="text-5xl mb-4 opacity-50">🖥️</div>
+                    <h3 class="text-xl font-bold mb-2">No Server Selected</h3>
+                    <p class="text-gray-400 mb-4">Create a new server or select an existing one to manage it</p>
+                    <button onclick="showCreateModal()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
+                        Create Your First Server
+                    </button>
+                </div>
+
+                <!-- Console -->
+                <div class="glass rounded-xl border border-purple-500/20 p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-green-400">📟</span>
+                        <h3 class="font-bold">Console</h3>
+                    </div>
+                    <div id="console" class="bg-black rounded-lg p-3 h-64 overflow-y-auto console-output text-xs space-y-1">
+                        <div class="text-gray-500">Console output will appear here...</div>
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <input
+                            type="text"
+                            id="commandInput"
+                            placeholder="Enter command..."
+                            class="flex-1 bg-black/50 border border-purple-500/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                            onkeypress="handleCommand(event)"
+                        />
+                    </div>
+                </div>
+
+                <!-- Plugins -->
+                <div id="pluginsSection" class="glass rounded-xl border border-purple-500/20 p-4 hidden">
+                    <h3 class="font-bold mb-3 flex items-center gap-2">
+                        ⚡ Installed Plugins (<span id="pluginCount">0</span>)
+                    </h3>
+                    <div id="installedPlugins" class="mb-4"></div>
+                    
+                    <div class="border-t border-purple-500/20 pt-3 mt-3">
+                        <div class="text-sm font-semibold mb-2">Available Plugins:</div>
+                        <div id="availablePlugins" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Server Modal -->
+    <div id="createModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 rounded-xl border border-purple-500/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6">Create New Server</h2>
+                <form id="createServerForm" onsubmit="createServer(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Server Name</label>
+                            <input name="name" required class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500" placeholder="My Awesome Server">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Server Type</label>
+                                <select name="serverType" id="serverType" onchange="updateCrossplayInfo()" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                    <option value="java">Java Edition</option>
+                                    <option value="bedrock">Bedrock Edition</option>
+                                    <option value="crossplay">Java + Bedrock (Crossplay)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Version</label>
+                                <select name="version" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                    <option>1.21.8</option>
+                                    <option>1.21.4</option>
+                                    <option>1.20.6</option>
+                                    <option>1.20.1</option>
+                                    <option>1.19.4</option>
+                                    <option>1.18.2</option>
+                                    <option>1.16.5</option>
+                                    <option>1.12.2</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="crossplayInfo" class="hidden bg-gradient-to-r from-green-900/20 to-blue-900/20 border border-green-500/30 rounded-lg p-4">
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-400 text-xl">🌉</span>
+                                <div class="text-xs text-gray-300">
+                                    <strong class="text-green-400">Crossplay Enabled!</strong> This server will support both Java Edition and Bedrock Edition players using Geyser plugin. Bedrock players can connect using the same address!
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Port</label>
+                                <input name="port" type="number" value="25565" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">RAM (MB)</label>
+                                <input name="ram" type="number" value="2048" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Max Players</label>
+                                <input name="maxPlayers" type="number" value="20" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Gamemode</label>
+                                <select name="gamemode" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                    <option>survival</option>
+                                    <option>creative</option>
+                                    <option>adventure</option>
+                                    <option>spectator</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Difficulty</label>
+                            <select name="difficulty" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                <option>peaceful</option>
+                                <option>easy</option>
+                                <option>normal</option>
+                                <option>hard</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-purple-900/20 p-3 rounded-lg">
+                            <input type="checkbox" name="autoRestart" id="autoRestart" checked class="w-4 h-4">
+                            <label for="autoRestart" class="text-sm">Enable auto-restart on crash (recommended)</label>
+                        </div>
+
+                        <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                            <div class="flex items-start gap-2">
+                                <span class="text-blue-400 text-xl">ℹ️</span>
+                                <div class="text-xs text-gray-300">
+                                    <strong class="text-blue-400">Quick Tip:</strong> Start with 2GB RAM for vanilla servers. Need help? Ask the AI Assistant for recommendations!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 mt-6">
+                        <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all font-semibold">
+                            Create Server
+                        </button>
+                        <button type="button" onclick="hideCreateModal()" class="px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-lg transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div id="aiModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 rounded-xl border border-cyan-500/30 max-w-3xl w-full h-[80vh] flex flex-col">
+            <div class="p-6 border-b border-cyan-500/20">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg">
+                            🤖
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">AI Assistant</h2>
+                            <p class="text-sm text-gray-400">Your Minecraft server expert</p>
+                        </div>
+                    </div>
+                    <button onclick="hideAIAssistant()" class="text-gray-400 hover:text-white transition-colors text-2xl">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <div id="aiChat" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4 opacity-50">🤖</div>
+                    <h3 class="text-xl font-bold mb-2">AI Assistant Ready</h3>
+                    <p class="text-gray-400 mb-6">Ask me anything about Minecraft servers!</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                        <button onclick="askAI('How do I create a server?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🎮 How do I create a server?
+                        </button>
+                        <button onclick="askAI('Which plugins should I install?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🔧 Which plugins should I install?
+                        </button>
+                        <button onclick="askAI('My server is lagging')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            ⚡ My server is lagging
+                        </button>
+                        <button onclick="askAI('How do I set up crossplay?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🌉 How do I set up crossplay?
+                        </button>
+                        <button onclick="askAI('How much RAM do I need?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            💾 How much RAM do I need?
+                        </button>
+                        <button onclick="askAI('How do I make a private server?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🔒 How do I make a private server?
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-cyan-500/20">
+                <div class="flex gap-3">
+                    <input
+                        type="text"
+                        id="aiInput"
+                        placeholder="Ask me anything about Minecraft servers..."
+                        class="flex-1 bg-black/30 border border-cyan-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                        onkeypress="handleAIInput(event)"
+                    />
+                    <button onclick="sendAIMessage()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all font-semibold">
+                        Send
+                    </button>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 text-center">
+                    💡 Tip: Ask about server setup, plugins, performance, or troubleshooting
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentUser = null;
+        let servers = [];
+        let selectedServer = null;
+        let consoleOutput = [];
+
+        const popularPlugins = [
+            { name: 'EssentialsX', desc: 'Core commands (/home, /spawn, /warp)', category: 'Essential' },
+            { name: 'WorldEdit', desc: 'In-game map editor', category: 'Building' },
+            { name: 'WorldGuard', desc: 'Region protection and flags', category: 'Protection' },
+            { name: 'LuckPerms', desc: 'Advanced permissions management', category: 'Admin' },
+            { name: 'Vault', desc: 'Economy API for plugins', category: 'Economy' },
+            { name: 'CoreProtect', desc: 'Block logging and rollback', category: 'Protection' },
+            { name: 'Geyser', desc: 'Bedrock crossplay support', category: 'Crossplay', crossplay: true },
+            { name: 'Floodgate', desc: 'Bedrock authentication', category: 'Crossplay', crossplay: true },
+            { name: 'RandomTeleport', desc: 'RTP command for random tp', category: 'Teleport' },
+            { name: 'WildStacker', desc: 'Stack mobs and items', category: 'Performance' },
+            { name: 'ClearLag', desc: 'Auto-remove lag-causing entities', category: 'Performance' },
+            { name: 'Citizens', desc: 'NPC creation and management', category: 'NPCs' },
+            { name: 'ChestShop', desc: 'Player-owned shops', category: 'Economy' },
+            { name: 'mcMMO', desc: 'RPG skills and leveling system', category: 'RPG' },
+            { name: 'GriefPrevention', desc: 'Land claiming system', category: 'Protection' },
+            { name: 'DynMap', desc: 'Live web-based map', category: 'Web Tools' },
+            { name: 'AdvancedPortals', desc: 'Create custom portals', category: 'Teleport' },
+            { name: 'TabList', desc: 'Customize tab list', category: 'Cosmetic' }
+        ];
+
+        // Auth functions
+        function checkAuth() {
+            const savedUser = sessionStorage.getItem('freemc_user');
+            const permanentUser = localStorage.getItem('freemc_user_permanent');
+            
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainApp();
+            } else if (permanentUser) {
+                currentUser = JSON.parse(permanentUser);
+                sessionStorage.setItem('freemc_user', permanentUser);
+                showMainApp();
+            }
+        }
+
+        function signIn(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const staySignedIn = document.getElementById('staySignedIn').checked;
+
+            // Get all users
+            const users = JSON.parse(localStorage.getItem('freemc_users') || '{}');
+            
+            if (users[email] && users[email].password === password) {
+                currentUser = { email, username: users[email].username };
+                sessionStorage.setItem('freemc_user', JSON.stringify(currentUser));
+                
+                if (staySignedIn) {
+                    localStorage.setItem('freemc_user_permanent', JSON.stringify(currentUser));
+                }
+                
+                showMainApp();
+            } else {
+                alert('Invalid email or password');
+            }
+        }
+
+        function signUp(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const username = formData.get('username');
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            // Get all users
+            const users = JSON.parse(localStorage.getItem('freemc_users') || '{}');
+            
+            if (users[email]) {
+                alert('Email already registered');
+                return;
+            }
+
+            // Save new user
+            users[email] = { username, password };
+            localStorage.setItem('freemc_users', JSON.stringify(users));
+
+            // Auto sign in
+            currentUser = { email, username };
+            sessionStorage.setItem('freemc_user', JSON.stringify(currentUser));
+            
+            showMainApp();
+        }
+
+        function signOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                currentUser = null;
+                sessionStorage.removeItem('freemc_user');
+                localStorage.removeItem('freemc_user_permanent');
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
+            }
+        }
+
+        function showSignIn() {
+            document.getElementById('signInForm').classList.remove('hidden');
+            document.getElementById('signUpForm').classList.add('hidden');
+        }
+
+        function showSignUp() {
+            document.getElementById('signInForm').classList.add('hidden');
+            document.getElementById('signUpForm').classList.remove('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeMC Server Manager - Web Edition with AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #831843 100%);
+            font-family: 'Arial', sans-serif;
+        }
+        .console-output {
+            font-family: 'Courier New', monospace;
+        }
+        .glass {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <!-- Header -->
+    <div class="bg-black/20 backdrop-blur-sm border-b border-purple-500/20">
+        <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+                </svg>
+                <div>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        FreeMC Server Manager
+                    </h1>
+                    <p class="text-xs text-gray-400">24/7 Minecraft Hosting with AI Assistant</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="showAIAssistant()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all flex items-center gap-2 shadow-lg">
+                    🤖 AI Assistant
+                </button>
+                <button onclick="showCreateModal()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all flex items-center gap-2 shadow-lg">
+                    ➕ Create Server
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-6 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Server List -->
+            <div class="lg:col-span-1">
+                <div class="glass rounded-xl border border-purple-500/20 p-4">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        🖥️ Servers (<span id="serverCount">0</span>)
+                    </h2>
+                    <div id="serverList" class="space-y-2 max-h-[600px] overflow-y-auto">
+                        <div class="text-center py-8 text-gray-400">
+                            <div class="text-5xl mb-2">🖥️</div>
+                            <p>No servers yet</p>
+                            <p class="text-xs">Create one to get started!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Details -->
+            <div class="lg:col-span-2 space-y-4">
+                <div id="serverDetails" class="glass rounded-xl border border-purple-500/20 p-8 text-center">
+                    <div class="text-5xl mb-4 opacity-50">🖥️</div>
+                    <h3 class="text-xl font-bold mb-2">No Server Selected</h3>
+                    <p class="text-gray-400 mb-4">Create a new server or select an existing one to manage it</p>
+                    <button onclick="showCreateModal()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
+                        Create Your First Server
+                    </button>
+                </div>
+
+                <!-- Console -->
+                <div class="glass rounded-xl border border-purple-500/20 p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-green-400">📟</span>
+                        <h3 class="font-bold">Console</h3>
+                    </div>
+                    <div id="console" class="bg-black rounded-lg p-3 h-64 overflow-y-auto console-output text-xs space-y-1">
+                        <div class="text-gray-500">Console output will appear here...</div>
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <input
+                            type="text"
+                            id="commandInput"
+                            placeholder="Enter command..."
+                            class="flex-1 bg-black/50 border border-purple-500/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                            onkeypress="handleCommand(event)"
+                        />
+                    </div>
+                </div>
+
+                <!-- Plugins -->
+                <div id="pluginsSection" class="glass rounded-xl border border-purple-500/20 p-4 hidden">
+                    <h3 class="font-bold mb-3 flex items-center gap-2">
+                        ⚡ Installed Plugins (<span id="pluginCount">0</span>)
+                    </h3>
+                    <div id="installedPlugins" class="mb-4"></div>
+                    
+                    <div class="border-t border-purple-500/20 pt-3 mt-3">
+                        <div class="text-sm font-semibold mb-2">Available Plugins:</div>
+                        <div id="availablePlugins" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Server Modal -->
+    <div id="createModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 rounded-xl border border-purple-500/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6">Create New Server</h2>
+                <form id="createServerForm" onsubmit="createServer(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">Server Name</label>
+                            <input name="name" required class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500" placeholder="My Awesome Server">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Server Type</label>
+                                <select name="serverType" id="serverType" onchange="updateCrossplayInfo()" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                    <option value="java">Java Edition</option>
+                                    <option value="bedrock">Bedrock Edition</option>
+                                    <option value="crossplay">Java + Bedrock (Crossplay)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Version</label>
+                                <select name="version" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                    <option>1.21.8</option>
+                                    <option>1.21.4</option>
+                                    <option>1.20.6</option>
+                                    <option>1.20.1</option>
+                                    <option>1.19.4</option>
+                                    <option>1.18.2</option>
+                                    <option>1.16.5</option>
+                                    <option>1.12.2</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="crossplayInfo" class="hidden bg-gradient-to-r from-green-900/20 to-blue-900/20 border border-green-500/30 rounded-lg p-4">
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-400 text-xl">🌉</span>
+                                <div class="text-xs text-gray-300">
+                                    <strong class="text-green-400">Crossplay Enabled!</strong> This server will support both Java Edition and Bedrock Edition players using Geyser plugin. Bedrock players can connect using the same address!
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                                <label class="block text-sm font-semibold mb-2">Port</label>
+                                <input name="port" type="number" value="25565" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">RAM (MB)</label>
+                                <input name="ram" type="number" value="2048" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Max Players</label>
+                                <input name="maxPlayers" type="number" value="20" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Gamemode</label>
+                                <select name="gamemode" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                    <option>survival</option>
+                                    <option>creative</option>
+                                    <option>adventure</option>
+                                    <option>spectator</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Difficulty</label>
+                                <select name="difficulty" class="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                    <option>peaceful</option>
+                                    <option>easy</option>
+                                    <option>normal</option>
+                                    <option>hard</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-purple-900/20 p-3 rounded-lg">
+                            <input type="checkbox" name="autoRestart" id="autoRestart" checked class="w-4 h-4">
+                            <label for="autoRestart" class="text-sm">Enable auto-restart on crash (recommended)</label>
+                        </div>
+
+                        <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                            <div class="flex items-start gap-2">
+                                <span class="text-blue-400 text-xl">ℹ️</span>
+                                <div class="text-xs text-gray-300">
+                                    <strong class="text-blue-400">Quick Tip:</strong> Start with 2GB RAM for vanilla servers. Need help? Ask the AI Assistant for recommendations!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 mt-6">
+                        <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all font-semibold">
+                            Create Server
+                        </button>
+                        <button type="button" onclick="hideCreateModal()" class="px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-lg transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div id="aiModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 rounded-xl border border-cyan-500/30 max-w-3xl w-full h-[80vh] flex flex-col">
+            <div class="p-6 border-b border-cyan-500/20">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg">
+                            🤖
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold">AI Assistant</h2>
+                            <p class="text-sm text-gray-400">Your Minecraft server expert</p>
+                        </div>
+                    </div>
+                    <button onclick="hideAIAssistant()" class="text-gray-400 hover:text-white transition-colors text-2xl">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <div id="aiChat" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4 opacity-50">🤖</div>
+                    <h3 class="text-xl font-bold mb-2">AI Assistant Ready</h3>
+                    <p class="text-gray-400 mb-6">Ask me anything about Minecraft servers!</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                        <button onclick="askAI('How do I create a server?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🎮 How do I create a server?
+                        </button>
+                        <button onclick="askAI('Which plugins should I install?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🔧 Which plugins should I install?
+                        </button>
+                        <button onclick="askAI('My server is lagging')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            ⚡ My server is lagging
+                        </button>
+                        <button onclick="askAI('How do I let friends join?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🌐 How do I let friends join?
+                        </button>
+                        <button onclick="askAI('How much RAM do I need?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            💾 How much RAM do I need?
+                        </button>
+                        <button onclick="askAI('How do I make a private server?')" class="text-left p-3 bg-black/30 hover:bg-black/50 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg transition-all text-sm">
+                            🔒 How do I make a private server?
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-cyan-500/20">
+                <div class="flex gap-3">
+                    <input
+                        type="text"
+                        id="aiInput"
+                        placeholder="Ask me anything about Minecraft servers..."
+                        class="flex-1 bg-black/30 border border-cyan-500/30 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                        onkeypress="handleAIInput(event)"
+                    />
+                    <button onclick="sendAIMessage()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all font-semibold">
+                        Send
+                    </button>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 text-center">
+                    💡 Tip: Ask about server setup, plugins, performance, or troubleshooting
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let servers = [];
+        let selectedServer = null;
+        let consoleOutput = [];
+
+        const popularPlugins = [
+            { name: 'EssentialsX', desc: 'Core commands', category: 'Essential' },
+            { name: 'WorldEdit', desc: 'Build faster', category: 'Building' },
+            { name: 'WorldGuard', desc: 'Region protection', category: 'Protection' },
+            { name: 'LuckPerms', desc: 'Permissions', category: 'Admin' },
+            { name: 'Vault', desc: 'Economy API', category: 'Economy' },
+            { name: 'CoreProtect', desc: 'Block logging', category: 'Protection' },
+            { name: 'Geyser', desc: 'Bedrock crossplay support', category: 'Crossplay', crossplay: true },
+            { name: 'Floodgate', desc: 'Bedrock authentication', category: 'Crossplay', crossplay: true }
+        ];
+
+        // Load servers from sessionStorage
+        function loadServers() {
+            const saved = sessionStorage.getItem('freemc_servers');
+            if (saved) {
+                servers = JSON.parse(saved);
+                renderServerList();
+            }
+        }
+
+        // Save servers to sessionStorage
+        function saveServers() {
+            sessionStorage.setItem('freemc_servers', JSON.stringify(servers));
+        }
+
+        // Add console log
+        function addConsoleLog(msg, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                success: 'text-green-400',
+                warning: 'text-yellow-400',
+                error: 'text-red-400',
+                info: 'text-gray-300'
+            };
+            const consoleEl = document.getElementById('console');
+            const logEl = document.createElement('div');
+            logEl.className = colors[type];
+            logEl.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${msg}`;
+            consoleEl.appendChild(logEl);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // Render server list
+        function renderServerList() {
+            const listEl = document.getElementById('serverList');
+            document.getElementById('serverCount').textContent = servers.length;
+
+            if (servers.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <div class="text-5xl mb-2">🖥️</div>
+                        <p>No servers yet</p>
+                        <p class="text-xs">Create one to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = servers.map(server => `
+                <button onclick="selectServer('${server.id}')" class="w-full text-left p-3 rounded-lg transition-all ${selectedServer && selectedServer.id === server.id ? 'bg-purple-600/50 border-2 border-purple-400' : 'bg-black/20 border border-purple-500/20 hover:bg-black/40'}">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold">${server.name}</span>
+                        <span class="px-2 py-0.5 rounded text-xs ${server.status === 'running' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
+                            ${server.status === 'running' ? '● ONLINE' : '○ OFFLINE'}
+                        </span>
+                    </div>
+                    <div class="text-xs text-gray-400 space-y-0.5">
+                        <div>Version: ${server.version}</div>
+                        <div>Port: ${server.port} | RAM: ${server.ram}MB</div>
+                        <div>Plugins: ${server.plugins.length}</div>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        // Select server
+        function selectServer(id) {
+            selectedServer = servers.find(s => s.id === id);
+            renderServerDetails();
+            renderPlugins();
+        }
+
+        // Render server details
+        function renderServerDetails() {
+            if (!selectedServer) return;
+
+            const detailsEl = document.getElementById('serverDetails');
+            detailsEl.innerHTML = `
+                <div class="glass rounded-xl border border-purple-500/20 p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold">${selectedServer.name}</h2>
+                        <div class="flex gap-2">
+                            ${selectedServer.status === 'stopped' ? 
+                                '<button onclick="startServer()" class="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg transition-all flex items-center gap-2">▶️ Start</button>' :
+                                '<button onclick="stopServer()" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition-all flex items-center gap-2">⏹️ Stop</button>'
+                            }
+                            <button onclick="deleteServer()" class="px-4 py-2 bg-red-600/50 hover:bg-red-600 rounded-lg transition-all">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div class="bg-black/20 p-3 rounded-lg">
+                            <div class="text-gray-400 text-xs mb-1">Type</div>
+                            <div class="font-semibold">${selectedServer.serverType === 'crossplay' ? '🌉 Crossplay' : selectedServer.serverType === 'bedrock' ? '📱 Bedrock' : '☕ Java'}</div>
+                        </div>
+                        <div class="bg-black/20 p-3 rounded-lg">
+                            <div class="text-gray-400 text-xs mb-1">Version</div>
+                            <div class="font-semibold">${selectedServer.version}</div>
+                        </div>
+                        <div class="bg-black/20 p-3 rounded-lg">
+                            <div class="text-gray-400 text-xs mb-1">RAM</div>
+                            <div class="font-semibold">${selectedServer.ram}MB</div>
+                        </div>
+                        <div class="bg-black/20 p-3 rounded-lg">
+                            <div class="text-gray-400 text-xs mb-1">Players</div>
+                            <div class="font-semibold">0/${selectedServer.maxPlayers}</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                        <div class="text-xs font-semibold text-blue-400 mb-2">Connection Info:</div>
+                        <div class="text-xs space-y-1 text-gray-300">
+                            <div>Java: <code class="bg-black/30 px-2 py-0.5 rounded">${selectedServer.publicAddress}</code></div>
+                            ${selectedServer.serverType === 'crossplay' ? `<div>Bedrock: <code class="bg-black/30 px-2 py-0.5 rounded">${selectedServer.publicAddress}:${selectedServer.bedrockPort}</code></div>` : ''}
+                            <div class="text-xs text-gray-400 mt-2">Local: localhost:${selectedServer.port}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('pluginsSection').classList.remove('hidden');
+        }
+
+        // Render plugins
+        function renderPlugins() {
+            if (!selectedServer) return;
+
+            document.getElementById('pluginCount').textContent = selectedServer.plugins.length;
+
+            const installedEl = document.getElementById('installedPlugins');
+            if (selectedServer.plugins.length === 0) {
+                installedEl.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">No plugins installed. Install from the list below!</div>';
+            } else {
+                installedEl.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2">
+                        ${selectedServer.plugins.map(plugin => `
+                            <div class="bg-black/20 p-2 rounded-lg text-sm">
+                                <div class="font-semibold text-green-400">${plugin.name}</div>
+                                <div class="text-xs text-gray-400">${plugin.category}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            const availableEl = document.getElementById('availablePlugins');
+            const available = popularPlugins.filter(p => !selectedServer.plugins.some(sp => sp.name === p.name));
+            availableEl.innerHTML = available.map(plugin => `
+                <div class="bg-black/20 p-3 rounded-lg">
+                    <div class="flex items-start justify-between mb-1">
+                        <div>
+                            <div class="font-semibold text-sm">${plugin.name}</div>
+                            <div class="text-xs text-gray-400">${plugin.desc}</div>
+                        </div>
+                        <span class="text-xs bg-purple-600/30 px-2 py-0.5 rounded">${plugin.category}</span>
+                    </div>
+                    <button onclick='installPlugin(${JSON.stringify(plugin)})' class="w-full mt-2 px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-xs transition-all">
+                        Install
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Generate public server address
+        function generatePublicAddress(serverName) {
+            // Convert server name to URL-friendly format
+            const cleanName = serverName.toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .replace(/\s+/g, '');
+            
+            // If name is too short, add random characters
+            const finalName = cleanName.length < 3 ? cleanName + Math.random().toString(36).substring(2, 5) : cleanName;
+            
+            return `${finalName}.smp.com`;
+        }
+
+        // Update crossplay info visibility
+        function updateCrossplayInfo() {
+            const serverType = document.getElementById('serverType').value;
+            const crossplayInfo = document.getElementById('crossplayInfo');
+            
+            if (serverType === 'crossplay') {
+                crossplayInfo.classList.remove('hidden');
+            } else {
+                crossplayInfo.classList.add('hidden');
+            }
+        }
+
+        // Create server
+        function createServer(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const serverName = formData.get('name');
+            const serverType = formData.get('serverType');
+            const isCrossplay = serverType === 'crossplay';
+            
+            const server = {
+                id: Date.now().toString(),
+                name: serverName,
+                serverType: serverType,
+                version: formData.get('version'),
+                port: parseInt(formData.get('port')),
+                bedrockPort: isCrossplay ? parseInt(formData.get('port')) + 1 : null,
+                ram: parseInt(formData.get('ram')),
+                maxPlayers: parseInt(formData.get('maxPlayers')),
+                gamemode: formData.get('gamemode'),
+                difficulty: formData.get('difficulty'),
+                autoRestart: formData.get('autoRestart') === 'on',
+                status: 'stopped',
+                plugins: isCrossplay ? [
+                    { name: 'Geyser', desc: 'Bedrock crossplay support', category: 'Crossplay' },
+                    { name: 'Floodgate', desc: 'Bedrock authentication', category: 'Crossplay' }
+                ] : [],
+                created: new Date().toISOString(),
+                publicAddress: generatePublicAddress(serverName)
+            };
+            servers.push(server);
+            saveServers();
+            renderServerList();
+            addConsoleLog(`Server "${server.name}" created successfully`, 'success');
+            addConsoleLog(`Server Type: ${serverType === 'crossplay' ? 'Java + Bedrock (Crossplay)' : serverType === 'bedrock' ? 'Bedrock Edition' : 'Java Edition'}`, 'info');
+            addConsoleLog(`Public address: ${server.publicAddress}`, 'success');
+            if (isCrossplay) {
+                addConsoleLog(`Bedrock players can also connect on port ${server.bedrockPort}`, 'success');
+                addConsoleLog(`Geyser and Floodgate plugins auto-installed for crossplay`, 'success');
+            }
+            hideCreateModal();
+        }
+
+        // Start server
+        function startServer() {
+            selectedServer.status = 'running';
+            saveServers();
+            renderServerList();
+            renderServerDetails();
+            addConsoleLog('Starting server...', 'info');
+            setTimeout(() => {
+                addConsoleLog(`[Server] Starting minecraft server version ${selectedServer.version}`, 'info');
+                addConsoleLog('[Server] Loading world...', 'info');
+                addConsoleLog('[Server] Preparing spawn area: 0%', 'info');
+                setTimeout(() => {
+                    addConsoleLog(`[Server] Done! Server is running on port ${selectedServer.port}`, 'success');
+                }, 1000);
+            }, 500);
+        }
+
+        // Stop server
+        function stopServer() {
+            selectedServer.status = 'stopped';
+            saveServers();
+            renderServerList();
+            renderServerDetails();
+            addConsoleLog('Stopping server...', 'warning');
+            setTimeout(() => {
+                addConsoleLog('[Server] Saving world...', 'info');
+                addConsoleLog('[Server] Server stopped', 'warning');
+            }, 500);
+        }
+
+        // Delete server
+        function deleteServer() {
+            if (confirm('Are you sure you want to delete this server?')) {
+                servers = servers.filter(s => s.id !== selectedServer.id);
+                saveServers();
+                selectedServer = null;
+                renderServerList();
+                document.getElementById('serverDetails').innerHTML = `
+                    <div class="glass rounded-xl border border-purple-500/20 p-8 text-center">
+                        <div class="text-5xl mb-4 opacity-50">🖥️</div>
+                        <h3 class="text-xl font-bold mb-2">No Server Selected</h3>
+                        <p class="text-gray-400 mb-4">Create a new server or select an existing one to manage it</p>
+                        <button onclick="showCreateModal()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
+                            Create Your First Server
+                        </button>
+                    </div>
+                `;
+                document.getElementById('pluginsSection').classList.add('hidden');
+                addConsoleLog('Server deleted', 'error');
+            }
+        }
+
+        // Install plugin
+        function installPlugin(plugin) {
+            selectedServer.plugins.push(plugin);
+            saveServers();
+            renderPlugins();
+            addConsoleLog(`Installing plugin: ${plugin.name}`, 'success');
+        }
+
+        // Handle command
+        function handleCommand(e) {
+            if (e.key === 'Enter' && e.target.value) {
+                addConsoleLog('> ' + e.target.value, 'info');
+                e.target.value = '';
+            }
+        }
+
+        // Modal functions
+        function showCreateModal() {
+            document.getElementById('createModal').classList.remove('hidden');
+        }
+
+        function hideCreateModal() {
+            document.getElementById('createModal').classList.add('hidden');
+            document.getElementById('createServerForm').reset();
+        }
+
+        function showAIAssistant() {
+            document.getElementById('aiModal').classList.remove('hidden');
+        }
+
+        function hideAIAssistant() {
+            document.getElementById('aiModal').classList.add('hidden');
+        }
+
+        // AI Assistant functions
+        function processAIQuery(query) {
+            const lowerQuery = query.toLowerCase();
+            let response = '';
+
+            if (lowerQuery.includes('crossplay') || lowerQuery.includes('bedrock') || lowerQuery.includes('cross play')) {
+                response = "Setting up Java + Bedrock Crossplay:\n\n🌉 **Crossplay Server:**\nWhen you create a server, select 'Java + Bedrock (Crossplay)' as the server type. This will automatically:\n• Install Geyser plugin (Bedrock compatibility)\n• Install Floodgate plugin (Bedrock authentication)\n• Set up a separate Bedrock port\n\n📱 **For Bedrock Players:**\nBedrock Edition players (Xbox, PS, Switch, Mobile, Windows 10) can connect using the same address with the Bedrock port!\n\n☕ **For Java Players:**\nJava Edition players connect normally.\n\n💡 **Pro Tip:** Both player types can play together seamlessly!";
+            } else if (lowerQuery.includes('create') && lowerQuery.includes('server')) {
+                response = "I can help you create a server! Here's what I recommend:\n\n🎮 **Basic Setup:**\n- Version: 1.21.8 (latest)\n- RAM: 2048MB (good for 10-20 players)\n- Port: 25565 (default)\n\n🌉 **Server Types:**\n- Java Edition (PC only)\n- Bedrock Edition (Console/Mobile)\n- Java + Bedrock Crossplay (Everyone!)\n\nWould you like me to guide you through the creation process? Just click the '➕ Create Server' button!";
+            } else if (lowerQuery.includes('plugin') || lowerQuery.includes('recommend')) {
+                response = "Here are my top plugin recommendations:\n\n🔧 **Essential Plugins:**\n• EssentialsX - Core commands (/spawn, /home, etc.)\n• WorldEdit - Build faster with commands\n• LuckPerms - Permission management\n\n🛡️ **Protection:**\n• WorldGuard - Protect regions\n• CoreProtect - Block logging/rollback\n\nSelect a server and check the Plugins section to install them!";
+            } else if (lowerQuery.includes('lag') || lowerQuery.includes('performance') || lowerQuery.includes('optimize')) {
+                response = "Here are some performance optimization tips:\n\n⚡ **Server Settings:**\n• Allocate at least 2GB RAM (more for modpacks)\n• Reduce view-distance to 8-10\n• Use Paper/Purpur for better performance\n\n🔧 **Plugins to Install:**\n• ClearLag - Auto-remove entities\n• FastAsyncWorldEdit - Faster building\n\n💡 **Pro Tip:** Enable auto-restart to keep your server fresh!";
+            } else if (lowerQuery.includes('port') || lowerQuery.includes('forward') || lowerQuery.includes('friends')) {
+                response = "To let friends join your server:\n\n🌐 **Option 1: Port Forwarding**\n1. Log into your router (usually 192.168.1.1)\n2. Find 'Port Forwarding' settings\n3. Forward port 25565 to your PC's IP\n4. Share your public IP with friends\n\n☁️ **Option 2: Use Playit.gg or Ngrok**\nThese services create tunnels without port forwarding!\n\n🔒 **Security:** Enable whitelist mode for private servers.";
+            } else if (lowerQuery.includes('version') || lowerQuery.includes('which')) {
+                response = "Minecraft Version Guide:\n\n🆕 **Latest (1.21.8):**\n• New biomes and features\n• Requires Java 21\n• Best for vanilla survival\n\n⚙️ **Popular Modded (1.20.1):**\n• Most mods available\n• Stable performance\n\n🏆 **Classic (1.8.8/1.12.2):**\n• PvP servers\n• Minigames\n• Lower RAM usage";
+            } else if (lowerQuery.includes('ram') || lowerQuery.includes('memory')) {
+                response = "RAM Allocation Guide:\n\n💾 **Recommended:**\n• 1-5 players: 1GB\n• 5-10 players: 2GB\n• 10-20 players: 3-4GB\n• 20+ players: 4-8GB\n\n📦 **With Mods:**\n• Add 1-2GB for modpacks\n• Large modpacks need 6-12GB\n\n⚠️ **Important:** Don't allocate all your system RAM!";
+            } else if (lowerQuery.includes('crash') || lowerQuery.includes('error') || lowerQuery.includes('not working')) {
+                response = "Troubleshooting Common Issues:\n\n🔴 **Server Won't Start:**\n• Check if port is already in use\n• Verify Java is installed\n• Increase RAM allocation\n\n⚠️ **Crashes:**\n• Enable auto-restart\n• Check console logs\n• Remove conflicting plugins\n\n🌐 **Can't Connect:**\n• Verify port forwarding\n• Check firewall settings\n• Try local IP first (127.0.0.1)";
+            } else if (lowerQuery.includes('whitelist') || lowerQuery.includes('private')) {
+                response = "Setting up a Private Server:\n\n🔒 **Enable Whitelist:**\n1. Check 'Enable Whitelist' when creating\n2. In console, type: /whitelist add PlayerName\n3. Only whitelisted players can join\n\n👥 **Managing Players:**\n• /whitelist add <player>\n• /whitelist remove <player>\n• /whitelist list\n• /op <player> (give admin)\n\n💡 You can also edit whitelist.json directly!";
+            } else {
+                response = "👋 Hi! I'm your FreeMC AI Assistant!\n\nI can help you with:\n• Creating and configuring servers\n• Plugin recommendations\n• Performance optimization\n• Port forwarding setup\n• Troubleshooting issues\n• Version selection\n\nTry asking me things like:\n- 'How do I create a server?'\n- 'Which plugins should I install?'\n- 'My server is lagging'\n- 'How much RAM do I need?'";
+            }
+
+            return response;
+        }
+
+        function addAIMessage(role, content) {
+            const chatEl = document.getElementById('aiChat');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (chatEl.querySelector('.text-center.py-12')) {
+                chatEl.innerHTML = '';
+            }
+
+            const messageEl = document.createElement('div');
+            messageEl.className = 'flex gap-3 ' + (role === 'user' ? 'justify-end' : 'justify-start');
+            
+            const formattedContent = content.replace(/\n/g, '<br>');
+            
+            if (role === 'assistant') {
+                messageEl.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 flex items-center justify-center flex-shrink-0">
+                        🤖
+                    </div>
+                    <div class="max-w-[80%] rounded-lg p-4 bg-black/30 border border-cyan-500/20">
+                        <div class="text-sm whitespace-pre-wrap">${formattedContent}</div>
+                        <div class="text-xs text-gray-400 mt-2">${timestamp}</div>
+                    </div>
+                `;
+            } else {
+                messageEl.innerHTML = `
+                    <div class="max-w-[80%] rounded-lg p-4 bg-purple-600/50 border border-purple-500/50">
+                        <div class="text-sm whitespace-pre-wrap">${formattedContent}</div>
+                        <div class="text-xs text-gray-400 mt-2">${timestamp}</div>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                        <span class="text-sm font-bold">U</span>
+                    </div>
+                `;
+            }
+            
+            chatEl.appendChild(messageEl);
+            chatEl.scrollTop = chatEl.scrollHeight;
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const query = input.value.trim();
+            
+            if (!query) return;
+            
+            addAIMessage('user', query);
+            input.value = '';
+            
+            setTimeout(() => {
+                const response = processAIQuery(query);
+                addAIMessage('assistant', response);
+            }, 500);
+        }
+
+        function askAI(question) {
+            document.getElementById('aiInput').value = question;
+            sendAIMessage();
+        }
+
+        function handleAIInput(e) {
+            if (e.key === 'Enter') {
+                sendAIMessage();
+            }
+        }
+
+        // Initialize
+        loadServers();
+    </script>
